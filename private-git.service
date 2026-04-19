@@ -9,6 +9,8 @@ User             = blanktiger
 WorkingDirectory = /home/blanktiger/private-git
 ExecStart        = /home/blanktiger/.cargo/bin/just run
 RemainAfterExit  = yes
+Restart          = on-failure
+RestartSec       = 30s
 
 [Install]
 WantedBy = multi-user.target
