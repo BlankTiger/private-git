@@ -58,6 +58,7 @@ services:
     container_name: 'runner-arm64'
     environment:
       DOCKER_HOST: tcp://docker-in-docker:2375
+      CREDENTIALS_DIRECTORY: /data
     user: 1001:1001
     volumes:
       - ./runner-arm64:/data
@@ -78,6 +79,7 @@ services:
   #   environment:
   #     DOCKER_DEFAULT_PLATFORM: linux/amd64
   #     DOCKER_HOST: tcp://docker-in-docker:2375
+  #     CREDENTIALS_DIRECTORY: /data
   #   user: 1001:1001
   #   volumes:
   #     - ./runner-amd64:/data

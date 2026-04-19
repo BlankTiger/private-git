@@ -1,0 +1,52 @@
+log:
+  level: info
+  job_level: info
+
+runner:
+  file: .runner
+  capacity: 1
+  envs:
+    A_TEST_ENV_NAME_1: a_test_env_value_1
+    A_TEST_ENV_NAME_2: a_test_env_value_2
+  env_file: .env
+  timeout: 3h
+  shutdown_timeout: 3h
+  insecure: false
+  fetch_timeout: 30s
+  fetch_interval: 2s
+  report_interval: 1s
+  labels:
+    - "linux/amd64"
+
+cache:
+  enabled: true
+  port: 0
+  dir: ""
+  external_server: ""
+  secret: ""
+  secret_url: ""
+  host: ""
+  proxy_port: 0
+  actions_cache_url_override: ""
+
+container:
+  # docker_host: unix:///var/run/docker.sock
+  network: ""
+  enable_ipv6: false
+  privileged: false
+  options: --platform linux/amd64
+  workdir_parent:
+  valid_volumes: []
+  # docker_host: "-"
+  force_pull: false
+  force_rebuild: false
+
+host:
+  workdir_parent:
+
+server:
+  connections:
+    forgejo:
+      url: https://git.maciejurban.dev/
+      uuid: 34386563-6136-3230-3231-393432616336
+      token_url: file:$CREDENTIALS_DIRECTORY/.token

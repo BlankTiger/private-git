@@ -1,6 +1,6 @@
 .env
-.worker-token-amd64
-.worker-token-arm64
+runner-amd64/.token
+runner-arm64/.token
 
 postgres/
 forgejo/
