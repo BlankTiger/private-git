@@ -1,12 +1,14 @@
 [Unit]
 Description = Private git
-After       = default.target
+After       = network-online.target
+Wants       = network-online.target
 
 [Service]
 Type             = oneshot
-WorkingDirectory = %h/private-git
-ExecStart        = %h/.cargo/bin/just run
+User             = blanktiger
+WorkingDirectory = /home/blanktiger/private-git
+ExecStart        = /home/blanktiger/.cargo/bin/just run
 RemainAfterExit  = yes
 
 [Install]
-WantedBy = default.target
+WantedBy = multi-user.target
