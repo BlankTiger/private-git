@@ -1,0 +1,85 @@
+services:
+  server:
+    image: codeberg.org/forgejo/forgejo:14
+    container_name: forgejo
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - FORGEJO__database__DB_TYPE=postgres
+      - FORGEJO__database__HOST=db:5432
+      - FORGEJO__database__NAME=forgejo
+      - FORGEJO__database__USER=forgejo
+      - FORGEJO__database__PASSWD=${DB_PASS}
+      - FORGEJO__server__SSH_DOMAIN=git-ssh.maciejurban.dev
+      - FORGEJO__server__SSH_PORT=22
+    restart: always
+    volumes:
+      - ./forgejo:/data
+    ports:
+      - "3000:3000"
+      - "222:22"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:14
+    restart: always
+    environment:
+      - POSTGRES_USER=forgejo
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=forgejo
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+
+  binfmt:
+    image: tonistiigi/binfmt
+    privileged: true
+    command: --install amd64
+    restart: "no"
+
+  docker-in-docker:
+    image: docker:dind
+    platform: linux/amd64
+    container_name: 'docker_dind'
+    privileged: true
+    command: ['dockerd', '-H', 'tcp://0.0.0.0:2375', '--tls=false']
+    restart: 'unless-stopped'
+    depends_on:
+      binfmt:
+        condition: service_completed_successfully
+
+  runner-arm64:
+    image: 'data.forgejo.org/forgejo/runner:12'
+    links:
+      - docker-in-docker
+    depends_on:
+      docker-in-docker:
+        condition: service_started
+    container_name: 'runner-arm64'
+    environment:
+      DOCKER_HOST: tcp://docker-in-docker:2375
+    user: 1001:1001
+    volumes:
+      - ./runner-arm64:/data
+    restart: 'unless-stopped'
+    command: 'forgejo-runner daemon --config /data/runner-config.yml'
+
+  # runner-amd64:
+  #   image: alpine:latest
+  #   platform: linux/amd64
+  #   links:
+  #     - docker-in-docker
+  #   depends_on:
+  #     docker-in-docker:
+  #       condition: service_started
+  #     binfmt:
+  #       condition: service_completed_successfully
+  #   container_name: 'runner-amd64'
+  #   environment:
+  #     DOCKER_DEFAULT_PLATFORM: linux/amd64
+  #     DOCKER_HOST: tcp://docker-in-docker:2375
+  #   user: 1001:1001
+  #   volumes:
+  #     - ./runner-amd64:/data
+  #   restart: 'unless-stopped'
+  #   command: '/bin/sh -c "sleep 5; /data/forgejo-runner-amd64 daemon --config /data/runner-config.yml"'

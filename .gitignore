@@ -1,0 +1,7 @@
+.env
+.worker-token-amd64
+.worker-token-arm64
+
+postgres/
+forgejo/
+data/

@@ -1,0 +1,5 @@
+tunnel: forgejo
+ingress:
+  - hostname: git.maciejurban.dev
+    service: http://localhost:3000
+  - service: http_status:404

@@ -1,0 +1,6 @@
+tunnel: ssh-forgejo
+credentials-file: /home/blanktiger/.cloudflared/5ab25e07-ac82-41af-be64-f8179278162f.json
+ingress:
+  - hostname: git-ssh.maciejurban.dev
+    service: ssh://localhost:222
+  - service: http_status:404
