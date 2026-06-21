@@ -24,7 +24,8 @@ while IFS=/ read -r user repo; do
         continue
     fi
 
-    if ! curl -f "https://api.github.com/repos/$user/$repo"; then
+    gh repo view "$user/$repo" >/dev/null 2>&1
+    if [ $? -eq 1 ]; then
         echo "$user/$repo doesn't exist"
         continue
     fi
@@ -42,6 +43,7 @@ while IFS=/ read -r user repo; do
         \"private\":    false,
         \"service\":    \"github\"
     }"
+
 done <<< "$repos"
 
 
