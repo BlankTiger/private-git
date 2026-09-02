@@ -7,7 +7,7 @@ run:
     #!/usr/bin/env bash
     set -euo pipefail
 
-    (crontab -l 2>/dev/null | grep -v 'plugin-sync.sh'; echo '0 0,12 * * * export $(cat /home/blanktiger/private-git/.env | xargs) && /home/blanktiger/private-git/scripts/plugin-sync.sh >> /home/blanktiger/logs/mirror-sync.log 2>&1') | crontab -
+    (crontab -l 2>/dev/null | grep -v 'plugin-sync.sh\|plugin-sync.py'; echo "0 0,12 * * * /bin/bash -lc 'source /home/blanktiger/private-git/.env && /home/blanktiger/private-git/scripts/plugin-sync.py >> /home/blanktiger/logs/mirror-sync.log 2>&1'") | crontab -
 
     source .env
     sudo docker-compose up -d
