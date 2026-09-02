@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 import subprocess
 import sys
@@ -24,6 +25,11 @@ class CommandResult:
     returncode: int
     stdout: str
     stderr: str
+
+
+def log(message: str, *, error: bool = False) -> None:
+    timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    print(f"[{timestamp}] {message}", file=sys.stderr if error else sys.stdout)
 
 
 def run_command(command: Sequence[str], *, environment: Mapping[str, str] | None = None) -> CommandResult:
@@ -97,7 +103,7 @@ def github_repository(token: str, repository: str) -> dict[str, Any] | None:
         environment=github_environment(token),
     )
     if result.returncode != 0:
-        print(f"{repository} does not exist or is not accessible")
+        log(f"{repository} does not exist or is not accessible")
         return None
     value = json.loads(result.stdout)
     if not isinstance(value, dict):
@@ -160,7 +166,7 @@ def create_forgejo_user(owner: str, password: str, container: str) -> None:
         ]
     )
     if result.returncode != 0:
-        print(f"Forgejo user {owner} already exists or could not be created")
+        log(f"Forgejo user {owner} already exists or could not be created")
 
 
 def target_owner(source_owner: str) -> str:
@@ -186,11 +192,11 @@ def migrate_repository(
     if status == 200:
         if private:
             forgejo_request(forgejo_token, "PATCH", path, {"private": True})
-            print(f"made {owner}/{name} private")
-        print(f"{owner}/{name} already exists on Forgejo")
+            log(f"made {owner}/{name} private")
+        log(f"{owner}/{name} already exists on Forgejo")
         return
     if status != 404:
-        print(f"Could not inspect {owner}/{name} on Forgejo (HTTP {status})")
+        log(f"Could not inspect {owner}/{name} on Forgejo (HTTP {status})")
         return
 
     create_forgejo_user(owner, fake_user_password, container)
@@ -205,9 +211,9 @@ def migrate_repository(
     }
     status, body = forgejo_request(forgejo_token, "POST", "/api/v1/repos/migrate", payload)
     if 200 <= status < 300:
-        print(f"Created {owner}/{name} mirror")
+        log(f"Created {owner}/{name} mirror")
     else:
-        print(f"Failed to create {owner}/{name} mirror (HTTP {status}): {body}")
+        log(f"Failed to create {owner}/{name} mirror (HTTP {status}): {body}")
 
 
 def main() -> int:
@@ -241,5 +247,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except (RuntimeError, json.JSONDecodeError, ValueError) as error:
-        print(f"mirror sync failed: {error}", file=sys.stderr)
+        log(f"mirror sync failed: {error}", error=True)
         sys.exit(1)
