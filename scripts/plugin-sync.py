@@ -129,6 +129,8 @@ def forgejo_request(
         method,
         "-H",
         f"Authorization: token {forgejo_token}",
+        "--write-out",
+        "\n%{http_code}",
         f"{FORGEJO_URL}{path}",
     ]
     if payload is not None:
@@ -139,8 +141,11 @@ def forgejo_request(
         raise RuntimeError(result.stderr.strip() or f"Forgejo request failed: {path}")
     body, separator, status = result.stdout.rpartition("\n")
     if not separator:
-        raise RuntimeError(f"Forgejo returned no HTTP status: {path}")
-    return int(status), body
+        raise RuntimeError(f"Forgejo returned no HTTP status for {method} {path}: {result.stdout!r}")
+    try:
+        return int(status), body
+    except ValueError as error:
+        raise RuntimeError(f"Forgejo returned invalid HTTP status for {method} {path}: {result.stdout!r}") from error
 
 
 def create_forgejo_user(owner: str, password: str, container: str) -> None:
@@ -232,14 +237,10 @@ def main() -> int:
     for repository in sorted(repositories):
         source = github_repository(github_token, repository)
         if source is not None:
-            migrate_repository(
-                repository,
-                source,
-                forgejo_token,
-                github_token,
-                fake_user_password,
-                container,
-            )
+            try:
+                migrate_repository(repository, source, forgejo_token, github_token, fake_user_password, container)
+            except (RuntimeError, json.JSONDecodeError, ValueError) as error:
+                log(f"sync failed for {repository}: {error}", error=True)
     return 0
 
 
